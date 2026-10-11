@@ -234,6 +234,10 @@ class PacketDecoder:
         except BaseException as e:  # davey/pyo3 panics are BaseExceptions
             if isinstance(e, (KeyboardInterrupt, SystemExit)):
                 raise
+            if 'UnencryptedWhenPassthroughDisabled' in (str(e) or repr(e)):
+                # Sender is still transmitting plain opus (not in the MLS group yet / transition gap):
+                # the frame has no DAVE layer, so hand it to opus untouched instead of dropping it.
+                return True
             self._dave_log_drop(str(e) or type(e).__name__)
             return False
 
